@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,6 +19,7 @@ public class UsuarioController {
     private UsuarioService usuarioService;
 
     @GetMapping
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<List<UsuarioDTO>> obterUsuarios() {
         List<UsuarioDTO> usuarioDTOS = usuarioService.obterUsuarios();
         return ResponseEntity.ok(usuarioDTOS);
@@ -29,15 +31,17 @@ public class UsuarioController {
         return ResponseEntity.status(HttpStatus.CREATED).body(usuarioDTO);
     }
 
-    @PutMapping
-    public ResponseEntity<UsuarioDTO> atualizarUsuario(@Valid @RequestBody UsuarioModel usuarioModel) {
-        UsuarioDTO usuarioDTO = usuarioService.atualizarUsuario(usuarioModel);
+    @PutMapping("/{idUsuario}")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or authentication.principal.idUsuario == #idUsuario")
+    public ResponseEntity<UsuarioDTO> atualizarUsuario(@PathVariable Long idUsuario, @Valid @RequestBody UsuarioModel usuarioModel) {
+        UsuarioDTO usuarioDTO = usuarioService.atualizarUsuario(idUsuario, usuarioModel);
         return ResponseEntity.status(HttpStatus.OK).body(usuarioDTO);
     }
 
-    @DeleteMapping
-    public ResponseEntity<String> deletarUsuario(@Valid @RequestBody UsuarioModel usuarioModel) {
-        usuarioService.deletarUsuario(usuarioModel);
-        return ResponseEntity.status(HttpStatus.OK).body("Usuário deletado com sucesso.");
+    @DeleteMapping("/{idUsuario}")
+    @PreAuthorize("hasRole('ROLE_ADMIN') or authentication.principal.idUsuario == #idUsuario")
+    public ResponseEntity<String> deletarUsuario(@PathVariable Long idUsuario) {
+        usuarioService.deletarUsuario(idUsuario);
+        return ResponseEntity.ok("Usuário com ID " + idUsuario + " deletado com sucesso.");
     }
 }

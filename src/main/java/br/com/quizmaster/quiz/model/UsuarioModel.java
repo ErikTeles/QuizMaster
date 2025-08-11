@@ -10,13 +10,20 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import java.util.Collection;
+import java.util.List;
+
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
 @Table(name = "Usuario")
-public class UsuarioModel {
+public class UsuarioModel implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "idUsuario")
@@ -39,13 +46,56 @@ public class UsuarioModel {
     private String senha;
 
     @NotNull(message = "O tipo de usuário não pode ser nulo.")
-    @NotBlank(message = "O tipo de usuário é obrigatório.")
-    @Pattern(regexp = "^(Admin|Aluno|Professor)$", message = "O tipo de usuário deve ser 'Admin', 'Aluno' ou 'Professor'.")
-    @Column(name = "tipoUsuario", length = 10, nullable = false)
-    private String tipoUsuario;
+    @Enumerated(EnumType.STRING) // Diz ao JPA para salvar o nome do enum (ex: "ROLE_ADMIN") como texto
+    @Column(name = "tipoUsuario", nullable = false) // Mantemos o nome da coluna original
+    private Role role;
 
     public UsuarioDTO toDTO() {
         ModelMapper modelMapper = new ModelMapper();
+        modelMapper.typeMap(UsuarioModel.class, UsuarioDTO.class).addMappings(mapper -> {
+            mapper.map(UsuarioModel::getRole, UsuarioDTO::setTipoUsuario);
+        });
         return modelMapper.map(this, UsuarioDTO.class);
     }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        // Retorna a lista de papéis (autorizações) do usuário
+        return List.of(new SimpleGrantedAuthority(this.role.name()));
+    }
+
+    @Override
+    public String getPassword() {
+        // Retorna a senha do usuário
+        return this.senha;
+    }
+
+    @Override
+    public String getUsername() {
+        // Retorna o identificador de login do usuário (no nosso caso, o email)
+        return this.loginEmail;
+    }
+
+    // Os métodos abaixo controlam regras de expiração de conta/senha.
+    // Para simplificar, vamos retornar 'true' para todos.
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+
 }
