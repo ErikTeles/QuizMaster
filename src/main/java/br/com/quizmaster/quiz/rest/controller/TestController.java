@@ -14,9 +14,9 @@ public class TestController {
         return "Olá! Você está em uma rota protegida (acessível por qualquer usuário logado)!";
     }
 
-    // NOVO MÉTODO - APENAS PARA ADMINS
+
     @GetMapping("/admin")
-    @PreAuthorize("hasRole('ADMIN')") // Diz ao Spring Security: "Só permita se o usuário tiver a ROLE_ADMIN"
+    @PreAuthorize("hasRole('ROLE_ADMIN')") // Diz ao Spring Security: "Só permita se o usuário tiver a ROLE_ADMIN"
     public String adminOnly() {
         return "Olá, Admin! Você está em uma rota super secreta!";
     }
