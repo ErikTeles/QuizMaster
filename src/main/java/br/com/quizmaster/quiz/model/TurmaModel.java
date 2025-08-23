@@ -1,6 +1,6 @@
 package br.com.quizmaster.quiz.model;
 
-import br.com.quizmaster.quiz.rest.dto.TurmaDTO;
+import br.com.quizmaster.quiz.rest.dto.TurmaResponseDTO;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -42,11 +42,11 @@ public class TurmaModel {
             joinColumns = @JoinColumn(name = "idTurma"),
             inverseJoinColumns = @JoinColumn(name = "idUsuario")
     )
-    @SQLRestriction("tipoUsuario = 'ROLE_ALUNO'")
+    @SQLRestriction("tipoUsuario = 'ALUNO'")
     private List<UsuarioModel> alunos;
 
-    public TurmaDTO toDTO() {
+    public TurmaResponseDTO toDTO() {
         ModelMapper modelMapper = new ModelMapper();
-        return modelMapper.map(this, TurmaDTO.class);
+        return modelMapper.map(this, TurmaResponseDTO.class);
     }
 }

@@ -1,6 +1,6 @@
 package br.com.quizmaster.quiz;
 
-import br.com.quizmaster.quiz.model.Role;
+import br.com.quizmaster.quiz.model.TipoUsuario;
 import br.com.quizmaster.quiz.model.UsuarioModel;
 import br.com.quizmaster.quiz.repository.UsuarioRepository;
 import org.springframework.boot.CommandLineRunner;
@@ -26,7 +26,7 @@ public class QuizApplication {
                 admin.setNome("Admin");
                 admin.setLoginEmail("admin@quizmaster.com");
                 admin.setSenha(passwordEncoder.encode("admin123"));
-                admin.setRole(Role.ROLE_ADMIN);
+                admin.setTipoUsuario(TipoUsuario.ADMIN);
                 repository.save(admin);
                 System.out.println(">>> Usuário admin de teste criado!");
             }
@@ -37,7 +37,7 @@ public class QuizApplication {
                 aluno.setNome("Aluno Teste");
                 aluno.setLoginEmail("aluno@quizmaster.com");
                 aluno.setSenha(passwordEncoder.encode("aluno123"));
-                aluno.setRole(Role.ROLE_ALUNO);
+                aluno.setTipoUsuario(TipoUsuario.ALUNO);
                 repository.save(aluno);
                 System.out.println(">>> Usuário aluno de teste criado!");
             }

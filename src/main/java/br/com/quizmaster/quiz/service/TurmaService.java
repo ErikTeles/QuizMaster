@@ -4,7 +4,7 @@ import br.com.quizmaster.quiz.exception.ObjectNotFoundException;
 import br.com.quizmaster.quiz.model.TurmaModel;
 import br.com.quizmaster.quiz.repository.TurmaRepository;
 import br.com.quizmaster.quiz.repository.UsuarioRepository;
-import br.com.quizmaster.quiz.rest.dto.TurmaDTO;
+import br.com.quizmaster.quiz.rest.dto.TurmaResponseDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,7 +21,7 @@ public class TurmaService {
     private UsuarioRepository usuarioRepository;
 
     @Transactional(readOnly = true)
-    public List<TurmaDTO> obterTurmas() {
+    public List<TurmaResponseDTO> obterTurmas() {
         return turmaRepository
                 .findAll()
                 .stream()
@@ -30,7 +30,7 @@ public class TurmaService {
     }
 
     @Transactional
-    public TurmaDTO cadastrarTurma(TurmaModel turmaModel) {
+    public TurmaResponseDTO cadastrarTurma(TurmaModel turmaModel) {
         if (!usuarioRepository.existsById(turmaModel.getIdOrganizador().getIdUsuario())) {
             throw new ObjectNotFoundException("Usuário organizador não encontrado com o ID:" + turmaModel.getIdOrganizador().getIdUsuario());
         }
@@ -39,9 +39,9 @@ public class TurmaService {
     }
 
     @Transactional
-    public TurmaDTO atualizarTurma(Long id, TurmaModel turmaModel) {
+    public TurmaResponseDTO atualizarTurma(Long id, TurmaModel turmaModel) {
         if (!turmaRepository.existsById(id)) {
-            throw new ObjectNotFoundException("Turma não encontrada com o ID:" + turmaModel.getIdTurma());
+            throw new ObjectNotFoundException("Turma não encontrada com o ID:" + id);
         }
 
         return turmaRepository.save(turmaModel).toDTO();

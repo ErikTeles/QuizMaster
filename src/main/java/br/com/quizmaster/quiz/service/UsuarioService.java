@@ -1,10 +1,10 @@
 package br.com.quizmaster.quiz.service;
 
 import br.com.quizmaster.quiz.exception.*;
-import br.com.quizmaster.quiz.model.Role;
+import br.com.quizmaster.quiz.model.TipoUsuario;
 import br.com.quizmaster.quiz.model.UsuarioModel;
 import br.com.quizmaster.quiz.repository.UsuarioRepository;
-import br.com.quizmaster.quiz.rest.dto.UsuarioDTO;
+import br.com.quizmaster.quiz.rest.dto.UsuarioResponseDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -22,7 +22,7 @@ public class UsuarioService {
     private final PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
-    public List<UsuarioDTO> obterUsuarios() {
+    public List<UsuarioResponseDTO> obterUsuarios() {
         return usuarioRepository
                 .findAll()
                 .stream()
@@ -33,7 +33,7 @@ public class UsuarioService {
 
 
     @Transactional
-    public UsuarioDTO cadastrarUsuario(UsuarioModel usuarioModel) {
+    public UsuarioResponseDTO cadastrarUsuario(UsuarioModel usuarioModel) {
         // 1. VERIFICA SE O E-MAIL JÁ EXISTE
         if (usuarioRepository.findByLoginEmail(usuarioModel.getLoginEmail()).isPresent()) {
             throw new ConstraintException("Já existe um usuário cadastrado com o e-mail '" + usuarioModel.getLoginEmail() + "'!");
@@ -44,8 +44,8 @@ public class UsuarioService {
         usuarioModel.setSenha(senhaCriptografada);
 
         // 3. DEFINE UMA ROLE PADRÃO SE NECESSÁRIO
-        if (usuarioModel.getRole() == null) {
-            usuarioModel.setRole(Role.ROLE_ALUNO);
+        if (usuarioModel.getTipoUsuario() == null) {
+            usuarioModel.setTipoUsuario(TipoUsuario.ALUNO);
         }
 
         // 4. SALVA O USUÁRIO NO BANCO
@@ -54,7 +54,7 @@ public class UsuarioService {
     }
 
     @Transactional
-    public UsuarioDTO atualizarUsuario(Long id, UsuarioModel dadosAtualizados) {
+    public UsuarioResponseDTO atualizarUsuario(Long id, UsuarioModel dadosAtualizados) {
         // 1. BUSCA O USUÁRIO PELO ID FORNECIDO NA URL
         UsuarioModel usuarioExistente = usuarioRepository.findById(id)
                 .orElseThrow(() -> new ObjectNotFoundException("Usuário não encontrado com o ID: " + id));

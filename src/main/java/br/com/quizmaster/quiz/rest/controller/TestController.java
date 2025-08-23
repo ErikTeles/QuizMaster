@@ -16,7 +16,7 @@ public class TestController {
 
 
     @GetMapping("/admin")
-    @PreAuthorize("hasRole('ROLE_ADMIN')") // Diz ao Spring Security: "Só permita se o usuário tiver a ROLE_ADMIN"
+    @PreAuthorize("hasRole('ADMIN')") // Diz ao Spring Security: "Só permita se o usuário tiver a ADMIN"
     public String adminOnly() {
         return "Olá, Admin! Você está em uma rota super secreta!";
     }

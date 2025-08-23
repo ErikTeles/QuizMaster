@@ -5,7 +5,7 @@ import lombok.Data;
 import org.modelmapper.ModelMapper;
 
 @Data
-public class UsuarioDTO {
+public class UsuarioResponseDTO {
     private Long idUsuario;
     private String nome;
     private String loginEmail;

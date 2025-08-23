@@ -1,11 +1,10 @@
 package br.com.quizmaster.quiz.model;
 
-import br.com.quizmaster.quiz.rest.dto.UsuarioDTO;
+import br.com.quizmaster.quiz.rest.dto.UsuarioResponseDTO;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -46,22 +45,22 @@ public class UsuarioModel implements UserDetails {
     private String senha;
 
     @NotNull(message = "O tipo de usuário não pode ser nulo.")
-    @Enumerated(EnumType.STRING) // Diz ao JPA para salvar o nome do enum (ex: "ROLE_ADMIN") como texto
+    @Enumerated(EnumType.STRING) // Diz ao JPA para salvar o nome do enum (ex: "ADMIN") como texto
     @Column(name = "tipoUsuario", nullable = false) // Mantemos o nome da coluna original
-    private Role role;
+    private TipoUsuario tipoUsuario;
 
-    public UsuarioDTO toDTO() {
+    public UsuarioResponseDTO toDTO() {
         ModelMapper modelMapper = new ModelMapper();
-        modelMapper.typeMap(UsuarioModel.class, UsuarioDTO.class).addMappings(mapper -> {
-            mapper.map(UsuarioModel::getRole, UsuarioDTO::setTipoUsuario);
+        modelMapper.typeMap(UsuarioModel.class, UsuarioResponseDTO.class).addMappings(mapper -> {
+            mapper.map(UsuarioModel::getTipoUsuario, UsuarioResponseDTO::setTipoUsuario);
         });
-        return modelMapper.map(this, UsuarioDTO.class);
+        return modelMapper.map(this, UsuarioResponseDTO.class);
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         // Retorna a lista de papéis (autorizações) do usuário
-        return List.of(new SimpleGrantedAuthority(this.role.name()));
+        return List.of(new SimpleGrantedAuthority(this.tipoUsuario.name()));
     }
 
     @Override
