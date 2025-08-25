@@ -45,7 +45,7 @@ public class UsuarioService {
 
         // 3. DEFINE UMA ROLE PADRÃO SE NECESSÁRIO
         if (usuarioModel.getTipoUsuario() == null) {
-            usuarioModel.setTipoUsuario(TipoUsuario.ALUNO);
+            usuarioModel.setTipoUsuario(TipoUsuario.ROLE_ALUNO);
         }
 
         // 4. SALVA O USUÁRIO NO BANCO

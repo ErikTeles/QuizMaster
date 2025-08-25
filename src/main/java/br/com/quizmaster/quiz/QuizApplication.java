@@ -26,7 +26,7 @@ public class QuizApplication {
                 admin.setNome("Admin");
                 admin.setLoginEmail("admin@quizmaster.com");
                 admin.setSenha(passwordEncoder.encode("admin123"));
-                admin.setTipoUsuario(TipoUsuario.ADMIN);
+                admin.setTipoUsuario(TipoUsuario.ROLE_ADMIN);
                 repository.save(admin);
                 System.out.println(">>> Usuário admin de teste criado!");
             }
@@ -37,7 +37,7 @@ public class QuizApplication {
                 aluno.setNome("Aluno Teste");
                 aluno.setLoginEmail("aluno@quizmaster.com");
                 aluno.setSenha(passwordEncoder.encode("aluno123"));
-                aluno.setTipoUsuario(TipoUsuario.ALUNO);
+                aluno.setTipoUsuario(TipoUsuario.ROLE_ALUNO);
                 repository.save(aluno);
                 System.out.println(">>> Usuário aluno de teste criado!");
             }
