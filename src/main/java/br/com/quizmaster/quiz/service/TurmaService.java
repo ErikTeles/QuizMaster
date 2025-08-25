@@ -2,10 +2,13 @@ package br.com.quizmaster.quiz.service;
 
 import br.com.quizmaster.quiz.exception.ObjectNotFoundException;
 import br.com.quizmaster.quiz.model.TurmaModel;
+import br.com.quizmaster.quiz.model.UsuarioModel;
 import br.com.quizmaster.quiz.repository.TurmaRepository;
 import br.com.quizmaster.quiz.repository.UsuarioRepository;
+import br.com.quizmaster.quiz.rest.dto.TurmaRequestDTO;
 import br.com.quizmaster.quiz.rest.dto.TurmaResponseDTO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,12 +33,18 @@ public class TurmaService {
     }
 
     @Transactional
-    public TurmaResponseDTO cadastrarTurma(TurmaModel turmaModel) {
-        if (!usuarioRepository.existsById(turmaModel.getIdOrganizador().getIdUsuario())) {
-            throw new ObjectNotFoundException("Usuário organizador não encontrado com o ID:" + turmaModel.getIdOrganizador().getIdUsuario());
-        }
+    public TurmaResponseDTO cadastrarTurma(TurmaRequestDTO turmaRequestDTO, Authentication authentication) {
+        // Pega o usuário que está fazendo a requisição a partir do token.
+        UsuarioModel organizador = (UsuarioModel) authentication.getPrincipal();
 
-        return turmaRepository.save(turmaModel).toDTO();
+        // Cria a nova entidade TurmaModel.
+        TurmaModel novaTurma = new TurmaModel();
+        novaTurma.setNome(turmaRequestDTO.nome());
+        novaTurma.setIdOrganizador(organizador); // Define o usuário logado como o organizador.
+
+        // Salva no banco de dados.
+        TurmaModel turmaSalva = turmaRepository.save(novaTurma);
+        return turmaSalva.toDTO();
     }
 
     @Transactional

@@ -43,6 +43,9 @@ public class QuizModel {
     @JoinColumn(name = "idTurma")
     private TurmaModel idTurma;
 
+    @Column(name = "descricao", columnDefinition = "TEXT") // Usar TEXT é bom para descrições que podem ser longas
+    private String descricao;
+
     public QuizResponseDTO toDTO() {
         ModelMapper modelMapper = new ModelMapper();
         return modelMapper.map(this, QuizResponseDTO.class);

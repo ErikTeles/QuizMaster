@@ -3,6 +3,7 @@ package br.com.quizmaster.quiz.config.security;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -16,6 +17,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 
 @Configuration
 @EnableWebSecurity
@@ -29,10 +32,24 @@ public class SecurityConfigurations {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
+                // Desabilitar CSRF (Cross-Site Request Forgery)
+                .csrf(AbstractHttpConfigurer::disable)
+
+                // ESSENCIAL PARA O H2: Permite que o console seja exibido em um frame
+                .headers(headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
+
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // Libera requisições OPTIONS (para CORS)
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+                        // ESSENCIAL PARA O H2: Libera o acesso à URL do console
+                        .requestMatchers("/h2/**").permitAll()
+
+                        // Libera os endpoints de autenticação e documentação
                         .requestMatchers("/auth/**", "/v3/api-docs/**", "/swagger-ui/**").permitAll()
+
+                        // Exige autenticação para todas as outras requisições
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())
