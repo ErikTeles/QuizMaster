@@ -1,68 +1,87 @@
 package br.com.quizmaster.quiz.service;
 
-import br.com.quizmaster.quiz.exception.ObjectNotFoundException;
-import br.com.quizmaster.quiz.model.QuizModel;
-import br.com.quizmaster.quiz.model.RespostaAlunoModel;
-import br.com.quizmaster.quiz.repository.QuestaoRepository;
-import br.com.quizmaster.quiz.repository.RespostaAlunoRepository;
-import br.com.quizmaster.quiz.repository.UsuarioRepository;
-import br.com.quizmaster.quiz.rest.dto.QuizResponseDTO;
-import br.com.quizmaster.quiz.rest.dto.RespostaAlunoResponseDTO;
-import org.springframework.beans.factory.annotation.Autowired;
+import br.com.quizmaster.quiz.model.*;
+import br.com.quizmaster.quiz.repository.*;
+import br.com.quizmaster.quiz.rest.dto.CorrecaoQuestaoDTO;
+import br.com.quizmaster.quiz.rest.dto.RespostaAlunoRequestDTO;
+import br.com.quizmaster.quiz.rest.dto.ResultadoQuizResponseDTO;
+import br.com.quizmaster.quiz.rest.dto.SubmissaoQuizRequestDTO;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class RespostaAlunoService {
-    @Autowired
-    private RespostaAlunoRepository respostaAlunoRepository;
 
-    @Autowired
-    private UsuarioRepository usuarioRepository;
-
-    @Autowired
-    private QuestaoRepository questaoRepository;
-
-    @Transactional(readOnly = true)
-    public List<RespostaAlunoResponseDTO> obterRespostaAlunos() {
-        return respostaAlunoRepository
-                .findAll()
-                .stream()
-                .map(RespostaAlunoModel::toDTO)
-                .collect(Collectors.toList());
-    }
+    private final RespostaAlunoRepository respostaAlunoRepository;
+    private final QuestaoRepository questaoRepository;
+    private final AlternativaRepository alternativaRepository;
+    private final QuizRepository quizRepository;
 
     @Transactional
-    public RespostaAlunoResponseDTO enviarResposta(RespostaAlunoModel respostaAlunoModel) {
-        if (!usuarioRepository.existsById(respostaAlunoModel.getIdUsuario().getIdUsuario())) {
-            throw new ObjectNotFoundException("Usuário da resposta não encontrado com o ID:" + respostaAlunoModel.getIdUsuario().getIdUsuario());
+    public ResultadoQuizResponseDTO salvarECorrigirRespostas(SubmissaoQuizRequestDTO submissao, Authentication authentication) {
+        UsuarioModel aluno = (UsuarioModel) authentication.getPrincipal();
+        QuizModel quiz = quizRepository.findById(submissao.quizId())
+                .orElseThrow(() -> new RuntimeException("Quiz não encontrado com o ID: " + submissao.quizId()));
+
+        int acertos = 0;
+        List<CorrecaoQuestaoDTO> correcaoDetalhada = new ArrayList<>();
+
+        for (RespostaAlunoRequestDTO respostaDto : submissao.respostas()) {
+            QuestaoModel questao = questaoRepository.findById(respostaDto.questaoId())
+                    .orElseThrow(() -> new RuntimeException("Questão não encontrada com o ID: " + respostaDto.questaoId()));
+
+            // Salva a resposta do aluno no banco
+            RespostaAlunoModel respostaAluno = new RespostaAlunoModel();
+            respostaAluno.setAluno(aluno);
+            respostaAluno.setQuestao(questao);
+            respostaAluno.setDataResposta(LocalDateTime.now());
+
+            boolean acertou = false;
+            String suaResposta = "Não respondida";
+            String respostaCorreta = "";
+
+            if (questao.getTipoQuestao() == TipoQuestao.MULTIPLA_ESCOLHA && respostaDto.alternativaId() != null) {
+                AlternativaModel alternativaEscolhida = alternativaRepository.findById(respostaDto.alternativaId()).orElse(null);
+                respostaAluno.setAlternativaEscolhida(alternativaEscolhida);
+                suaResposta = alternativaEscolhida != null ? alternativaEscolhida.getTexto() : "Resposta inválida";
+
+                // Lógica de correção para múltipla escolha
+                Optional<AlternativaModel> alternativaCorretaOpt = alternativaRepository.findByQuestaoAndEhCorreta(questao, true);
+                if(alternativaCorretaOpt.isPresent()){
+                    respostaCorreta = alternativaCorretaOpt.get().getTexto();
+                    if (alternativaEscolhida != null && alternativaEscolhida.isEhCorreta()) {
+                        acertou = true;
+                    }
+                }
+            }
+            // Adicione aqui a lógica para outros tipos de questão (DISSERTATIVA, etc.)
+
+            if (acertou) {
+                acertos++;
+            }
+
+            respostaAlunoRepository.save(respostaAluno);
+            correcaoDetalhada.add(new CorrecaoQuestaoDTO(questao.getIdQuestao(), questao.getEnunciado(), acertou, suaResposta, respostaCorreta));
         }
 
-        if (!questaoRepository.existsById(respostaAlunoModel.getIdQuestao().getIdQuestao())) {
-            throw new ObjectNotFoundException("Questão da resposta não encontrada com o ID:" + respostaAlunoModel.getIdQuestao().getIdQuestao());
-        }
+        int totalQuestoes = submissao.respostas().size();
+        double pontuacaoPercentual = (totalQuestoes > 0) ? ((double) acertos / totalQuestoes) * 100 : 0;
 
-        return respostaAlunoRepository.save(respostaAlunoModel).toDTO();
-    }
-
-    @Transactional
-    public RespostaAlunoResponseDTO atualizarResposta(Long id, RespostaAlunoModel respostaAlunoModel) {
-        if (!respostaAlunoRepository.existsById(id)) {
-            throw new ObjectNotFoundException("Resposta não encontrada com o ID:" + id);
-        }
-
-        return respostaAlunoRepository.save(respostaAlunoModel).toDTO();
-    }
-
-    @Transactional
-    public void deletarResposta(Long id) {
-        if (!respostaAlunoRepository.existsById(id)) {
-            throw new ObjectNotFoundException("Não foi possível deletar. Resposta não encontrada com o ID: " + id);
-        }
-
-        respostaAlunoRepository.deleteById(id);
+        return new ResultadoQuizResponseDTO(
+                quiz.getIdQuiz(),
+                quiz.getTitulo(),
+                totalQuestoes,
+                acertos,
+                pontuacaoPercentual,
+                correcaoDetalhada
+        );
     }
 }

@@ -1,6 +1,8 @@
 package br.com.quizmaster.quiz.model;
 
 import br.com.quizmaster.quiz.rest.dto.QuizResponseDTO;
+import br.com.quizmaster.quiz.rest.dto.SimpleTurmaDTO;
+import br.com.quizmaster.quiz.rest.dto.SimpleUsuarioDTO;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -47,7 +49,25 @@ public class QuizModel {
     private String descricao;
 
     public QuizResponseDTO toDTO() {
-        ModelMapper modelMapper = new ModelMapper();
-        return modelMapper.map(this, QuizResponseDTO.class);
+        // Cria os DTOs aninhados
+        SimpleUsuarioDTO professorDTO = new SimpleUsuarioDTO(this.idUsuario.getIdUsuario(), this.idUsuario.getNome());
+
+        // Verifica se o quiz está associado a uma turma para evitar erro de nulo
+        SimpleTurmaDTO turmaDTO = null;
+        if (this.idTurma != null) {
+            turmaDTO = new SimpleTurmaDTO(this.idTurma.getIdTurma(), this.idTurma.getNome());
+        }
+
+        // Cria e preenche o DTO principal
+        QuizResponseDTO dto = new QuizResponseDTO();
+        dto.setIdQuiz(this.idQuiz);
+        dto.setTitulo(this.titulo);
+        dto.setDescricao(this.descricao);
+        dto.setDataCriacao(this.dataCriacao);
+        dto.setCategoria(this.categoria);
+        dto.setProfessor(professorDTO);
+        dto.setTurma(turmaDTO);
+
+        return dto;
     }
 }

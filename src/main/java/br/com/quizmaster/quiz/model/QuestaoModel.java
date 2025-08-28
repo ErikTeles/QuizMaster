@@ -1,5 +1,6 @@
 package br.com.quizmaster.quiz.model;
 
+import br.com.quizmaster.quiz.rest.dto.AlternativaResponseDTO;
 import br.com.quizmaster.quiz.rest.dto.QuestaoResponseDTO;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -8,6 +9,10 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.modelmapper.ModelMapper;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
 @AllArgsConstructor
@@ -38,8 +43,21 @@ public class QuestaoModel {
     @NotNull(message = "A questão deve estar associada a um quiz e não pode ser nula.")
     private QuizModel idQuiz;
 
+    @OneToMany(mappedBy = "questao", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private List<AlternativaModel> alternativas = new ArrayList<>();
+
     public QuestaoResponseDTO toDTO() {
-        ModelMapper modelMapper = new ModelMapper();
-        return modelMapper.map(this, QuestaoResponseDTO.class);
+        // Converte a lista de entidades AlternativaModel para uma lista de DTOs
+        List<AlternativaResponseDTO> alternativasDTO = this.alternativas.stream()
+                .map(alternativa -> new AlternativaResponseDTO(alternativa.getIdAlternativa(), alternativa.getTexto()))
+                .collect(Collectors.toList());
+
+        // Cria o DTO da questão, passando a lista de DTOs de alternativas
+        return new QuestaoResponseDTO(
+                this.idQuestao,
+                this.enunciado,
+                this.tipoQuestao,
+                alternativasDTO // <-- Passando a lista convertida
+        );
     }
 }

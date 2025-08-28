@@ -77,4 +77,11 @@ public class QuizService {
 
         quizRepository.deleteById(id);
     }
+
+    @Transactional(readOnly = true)
+    public QuizResponseDTO obterQuizPorId(Long idQuiz) {
+        return quizRepository.findById(idQuiz)
+                .map(QuizModel::toDTO) // Se encontrar, converte para DTO
+                .orElseThrow(() -> new EntityNotFoundException("Quiz não encontrado com o ID: " + idQuiz));
+    }
 }

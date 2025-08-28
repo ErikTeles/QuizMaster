@@ -33,8 +33,8 @@ public class AlternativaService {
 
     @Transactional
     public AlternativaResponseDTO cadastrarAlternativa(AlternativaModel alternativaModel) {
-        if (!questaoRepository.existsById(alternativaModel.getIdQuestao().getIdQuestao())) {
-            throw new ObjectNotFoundException("Questão não encontrada com o ID:" + alternativaModel.getIdQuestao().getIdQuestao());
+        if (!questaoRepository.existsById(alternativaModel.getQuestao().getIdQuestao())) {
+            throw new ObjectNotFoundException("Questão não encontrada com o ID:" + alternativaModel.getQuestao().getIdQuestao() );
         }
 
         return alternativaRepository.save(alternativaModel).toDTO();

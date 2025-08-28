@@ -9,6 +9,10 @@ import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.security.core.GrantedAuthority; // Importe se necessário
+
+import java.util.List;
+import java.util.stream.Collectors; // Importe se necessário
 
 import java.security.Key;
 import java.util.Date;
@@ -24,8 +28,16 @@ public class TokenService {
     private long jwtExpiration;
 
     public String generateToken(UsuarioModel userDetails) {
+        // Pega a lista de papéis (ex: "ROLE_ADMIN") do usuário
+        List<String> roles = userDetails.getAuthorities()
+                .stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList());
+
         return Jwts.builder()
                 .setSubject(userDetails.getUsername())
+                // ADICIONA OS PAPÉIS (ROLES) DENTRO DO TOKEN
+                .claim("roles", roles)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration))
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
@@ -62,4 +74,5 @@ public class TokenService {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
     }
+
 }
