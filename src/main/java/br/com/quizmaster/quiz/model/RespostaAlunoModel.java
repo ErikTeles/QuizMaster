@@ -2,7 +2,6 @@ package br.com.quizmaster.quiz.model;
 
 import br.com.quizmaster.quiz.rest.dto.RespostaAlunoResponseDTO;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,34 +15,35 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "RespostaAluno")
 public class RespostaAlunoModel {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "idResposta")
     private Long idResposta;
 
-    @NotNull(message = "A data de resposta não pode ser nula.")
-    @Column(name = "dataResposta", nullable = false)
-    private LocalDateTime dataResposta;
+    @ManyToOne
+    @JoinColumn(name = "id_usuario", nullable = false)
+    private UsuarioModel aluno;
 
-    @Column(name = "respostaTexto", length = 255)
+    @ManyToOne
+    @JoinColumn(name = "id_questao", nullable = false)
+    private QuestaoModel questao;
+
+    @ManyToOne
+    @JoinColumn(name = "id_alternativa")
+    private AlternativaModel alternativaEscolhida;
+
+    @Column(name = "resposta_texto")
     private String respostaTexto;
 
-    @ManyToOne
-    @JoinColumn(name = "idUsuario", nullable = false)
-    @NotNull(message = "O usuário da resposta não pode ser nulo.")
-    private UsuarioModel idUsuario;
+    @Column(nullable = false)
+    private LocalDateTime dataResposta;
 
-    @ManyToOne
-    @JoinColumn(name = "idQuestao", nullable = false)
-    @NotNull(message = "A questão respondida pelo usuário não pode ser nula.")
-    private QuestaoModel idQuestao;
-
-    @ManyToOne
-    @JoinColumn(name = "idAlternativa")
-    private AlternativaModel idAlternativa; //A resposta não necessariamente precisa ter uma alternativa, pode ser uma questão discurssiva
-
-    public RespostaAlunoResponseDTO toDTO(){
-        ModelMapper modelMapper = new ModelMapper();
-        return modelMapper.map(this, RespostaAlunoResponseDTO.class);
+    // ==========================================================
+    // O MÉTODO toDTO() AGORA ESTÁ DENTRO DA CLASSE
+    // ==========================================================
+    public  RespostaAlunoResponseDTO toDTO() {
+        // Para a lógica de correção, o service montará um DTO de resultado mais complexo.
+        // Este método aqui pode simplesmente retornar um status básico de sucesso.
+        return new RespostaAlunoResponseDTO(this.idResposta, "Salvo com sucesso");
     }
 }

@@ -47,4 +47,10 @@ public class QuizController {
         quizService.deletarQuiz(idQuiz);
         return ResponseEntity.ok("Quiz com ID " + idQuiz + " deletado com sucesso.");
     }
+    @GetMapping("/{idQuiz}")
+    @PreAuthorize("isAuthenticated()") // Qualquer usuário logado pode ver um quiz
+    public ResponseEntity<QuizResponseDTO> obterQuizPorId(@PathVariable Long idQuiz) {
+        QuizResponseDTO quizDTO = quizService.obterQuizPorId(idQuiz);
+        return ResponseEntity.ok(quizDTO);
+    }
 }

@@ -12,13 +12,14 @@ import java.time.LocalDate;
 public class QuizResponseDTO {
     private Long idQuiz;
     private String titulo;
+    private String descricao; // Adicionei este campo que faltava
     private LocalDate dataCriacao;
     private String categoria;
-    private UsuarioModel idUsuario;
-    private TurmaModel idTurma;
 
-    public QuizModel toModel() {
-        ModelMapper modelMapper = new ModelMapper();
-        return modelMapper.map(this, QuizModel.class);
-    }
+    // AGORA USAMOS OS DTOs SEGUROS
+    private SimpleUsuarioDTO professor;
+    private SimpleTurmaDTO turma;
+
+    // O método toModel() geralmente não é necessário em um DTO de RESPOSTA.
+    // Ele é mais comum em DTOs de Requisição. Pode ser removido.
 }
